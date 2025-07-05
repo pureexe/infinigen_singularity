@@ -2,4 +2,4 @@
 Sigularity setup script for infinigen 
 
 generate from ChatGPT
-https://chatgpt.com/share/686948d4-195c-800d-b8c6-29b7c3cc30d7
+https://chatgpt.com/share/68694b2e-481c-800d-80bd-7e77a8f8591e
