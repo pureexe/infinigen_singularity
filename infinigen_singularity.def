@@ -1,0 +1,38 @@
+Bootstrap: docker
+From: nvidia/cuda:12.2.0-devel-ubuntu22.04
+
+%environment
+    export PATH=/opt/conda/bin:$PATH
+    export CONDA_DEFAULT_ENV=infinigen
+    export C_INCLUDE_PATH=$CONDA_PREFIX/include:$C_INCLUDE_PATH
+    export CPLUS_INCLUDE_PATH=$CONDA_PREFIX/include:$CPLUS_INCLUDE_PATH
+    export LIBRARY_PATH=$CONDA_PREFIX/lib:$LIBRARY_PATH
+    export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
+
+%post
+    # Install dependencies
+    apt-get update && apt-get install -y \
+        wget git cmake g++ libgles2-mesa-dev libglew-dev \
+        libglfw3-dev libglm-dev zlib1g-dev curl ca-certificates \
+        && rm -rf /var/lib/apt/lists/*
+
+    # Install Miniconda
+    curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda.sh
+    bash miniconda.sh -b -p /opt/conda
+    rm miniconda.sh
+    export PATH=/opt/conda/bin:$PATH
+
+    # Create conda env and install python + deps
+    conda create -y -n infinigen python=3.11
+    conda activate infinigen
+
+    # Clone and install Infinigen
+    git clone https://github.com/princeton-vl/infinigen.git /opt/infinigen
+    cd /opt/infinigen
+
+    # Use conda env explicitly here
+    /opt/conda/envs/infinigen/bin/pip install -e ".[dev,terrain,vis]"
+    /opt/conda/envs/infinigen/bin/pre-commit install
+
+%runscript
+    exec bash
