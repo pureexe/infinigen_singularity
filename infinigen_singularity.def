@@ -9,10 +9,6 @@ From: nvidia/cuda:12.2.0-devel-ubuntu22.04
     export LIBRARY_PATH=$CONDA_PREFIX/lib:$LIBRARY_PATH
     export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
 
-    alias python="/opt/conda/envs/infinigen/bin/python"
-    alias pip="/opt/conda/envs/infinigen/bin/pip"
-    alias conda="source /opt/conda/etc/profile.d/conda.sh && conda"
-
 %post
     # Install system dependencies
     apt-get update && apt-get install -y \
@@ -20,7 +16,7 @@ From: nvidia/cuda:12.2.0-devel-ubuntu22.04
         libglfw3-dev libglm-dev zlib1g-dev curl ca-certificates \
         libx11-dev libxi-dev libxxf86vm-dev libxcursor-dev libxrandr-dev \
         libxinerama-dev libxcomposite-dev libasound2 libxrender1 libsm6 libice6 \
-        xvfb libopenexr-dev libtiff-dev && \
+        xvfb libopenexr-dev libtiff-dev libxkbcommon0 && \
         rm -rf /var/lib/apt/lists/*
 
     # Install Miniconda
@@ -30,7 +26,7 @@ From: nvidia/cuda:12.2.0-devel-ubuntu22.04
     export PATH=/opt/conda/bin:$PATH
     . /opt/conda/etc/profile.d/conda.sh
 
-    # Create infinigen env
+    # Create conda environment
     conda create -y -n infinigen python=3.11
     conda activate infinigen
 
@@ -47,8 +43,12 @@ From: nvidia/cuda:12.2.0-devel-ubuntu22.04
     mv blender-3.6.11-linux-x64 blender
     rm blender-3.6.11-linux-x64.tar.xz
 
-    # Make sure "blender" is in PATH and globally callable
+    # Make blender available globally
     ln -s /opt/blender/blender /usr/local/bin/blender
 
+    # Ensure conda activates on shell entry
+    echo "source /opt/conda/etc/profile.d/conda.sh" >> /root/.bashrc
+    echo "conda activate infinigen" >> /root/.bashrc
+
 %runscript
-    exec bash
+    exec bash --login
