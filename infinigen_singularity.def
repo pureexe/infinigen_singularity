@@ -32,6 +32,10 @@ From: nvidia/cuda:12.0.0-devel-ubuntu22.04
     echo "===== Installing Python packages for Infinigen ====="
     /opt/miniconda3/bin/conda run -n infinigen pip install -e /opt/infinigen[dev]
 
+    echo "===== fixing landlab ====="
+    /opt/miniconda3/bin/conda run -n infinigen conda install -c conda-forge landlab=2.6.1 scipy<1.11
+
+
 %runscript
     echo "Activating Conda environment 'infinigen'..."
     source /opt/miniconda3/etc/profile.d/conda.sh
