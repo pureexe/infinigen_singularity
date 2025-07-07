@@ -1,54 +1,39 @@
-Bootstrap: docker
-From: nvidia/cuda:12.2.0-devel-ubuntu22.04
+BootStrap: docker
+From: nvidia/cuda:12.0.0-devel-ubuntu22.04
 
 %environment
-    export PATH=/opt/conda/bin:/opt/blender:$PATH
-    export CONDA_DEFAULT_ENV=infinigen
-    export C_INCLUDE_PATH=$CONDA_PREFIX/include:$C_INCLUDE_PATH
-    export CPLUS_INCLUDE_PATH=$CONDA_PREFIX/include:$CPLUS_INCLUDE_PATH
-    export LIBRARY_PATH=$CONDA_PREFIX/lib:$LIBRARY_PATH
-    export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
+    export PATH="/opt/miniconda3/bin:$PATH"
+    export CONDA_ENV_NAME=infinigen
 
 %post
-    # Install system dependencies
+    echo "===== Installing system dependencies ====="
     apt-get update && apt-get install -y \
-        wget git cmake g++ libgles2-mesa-dev libglew-dev \
-        libglfw3-dev libglm-dev zlib1g-dev curl ca-certificates \
-        libx11-dev libxi-dev libxxf86vm-dev libxcursor-dev libxrandr-dev \
-        libxinerama-dev libxcomposite-dev libasound2 libxrender1 libsm6 libice6 \
-        xvfb libopenexr-dev libtiff-dev libxkbcommon0 && \
+        wget curl git unzip sudo g++ cmake vim \
+        libglm-dev libglew-dev libglfw3-dev libgles2-mesa-dev \
+        zlib1g-dev libxi6 libgconf-2-4 libxkbcommon-x11-0 libsm6 && \
         rm -rf /var/lib/apt/lists/*
 
-    # Install Miniconda
-    curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda.sh
-    bash miniconda.sh -b -p /opt/conda
-    rm miniconda.sh
-    export PATH=/opt/conda/bin:$PATH
-    . /opt/conda/etc/profile.d/conda.sh
+    echo "===== Installing Miniconda into /opt/miniconda3 ====="
+    MINICONDA_INSTALLER=Miniconda3-latest-Linux-x86_64.sh
+    wget https://repo.anaconda.com/miniconda/${MINICONDA_INSTALLER} && \
+        bash ${MINICONDA_INSTALLER} -b -p /opt/miniconda3 && \
+        rm ${MINICONDA_INSTALLER}
 
-    # Create conda environment
-    conda create -y -n infinigen python=3.11
-    conda activate infinigen
+    echo "===== Ensuring conda.sh is world-readable ====="
+    chmod a+r /opt/miniconda3/etc/profile.d/conda.sh
 
-    # Clone and install infinigen
-    git clone https://github.com/princeton-vl/infinigen.git /opt/infinigen
-    cd /opt/infinigen
-    pip install -e ".[dev,terrain,vis]"
-    pre-commit install
+    echo "===== Cloning Infinigen repository ====="
+    git clone --branch main --depth 1 https://github.com/princeton-vl/infinigen.git /opt/infinigen
 
-    # Install Blender 3.6.11
-    cd /opt
-    wget https://download.blender.org/release/Blender3.6/blender-3.6.11-linux-x64.tar.xz
-    tar -xf blender-3.6.11-linux-x64.tar.xz
-    mv blender-3.6.11-linux-x64 blender
-    rm blender-3.6.11-linux-x64.tar.xz
+    echo "===== Creating conda environment 'infinigen' ====="
+    /opt/miniconda3/bin/conda init bash
+    /opt/miniconda3/bin/conda create --name infinigen python=3.11 -y
 
-    # Make blender available globally
-    ln -s /opt/blender/blender /usr/local/bin/blender
-
-    # Ensure conda activates on shell entry
-    echo "source /opt/conda/etc/profile.d/conda.sh" >> /root/.bashrc
-    echo "conda activate infinigen" >> /root/.bashrc
+    echo "===== Installing Python packages for Infinigen ====="
+    /opt/miniconda3/bin/conda run -n infinigen pip install -e /opt/infinigen[dev]
 
 %runscript
-    exec bash --login
+    echo "Activating Conda environment 'infinigen'..."
+    source /opt/miniconda3/etc/profile.d/conda.sh
+    conda activate infinigen
+    exec "$@"
