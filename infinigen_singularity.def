@@ -30,7 +30,7 @@ From: nvidia/cuda:12.0.0-devel-ubuntu22.04
     /opt/miniconda3/bin/conda run -n infinigen pip install "git+https://github.com/princeton-vl/infinigen.git@main#egg=infinigen[dev]"
 
     echo "===== fixing landlab ====="
-    /opt/miniconda3/bin/conda run -n infinigen conda install -c conda-forge landlab=2.6.0 scipy<1.11
+    /opt/miniconda3/bin/conda run -n infinigen conda install -c conda-forge "landlab=2.6.0" "scipy<1.11"
 
 
 %runscript
